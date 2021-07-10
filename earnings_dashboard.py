@@ -30,6 +30,7 @@ returns_df['BETA'] = returns_df['COV']/returns_df['VAR']
 returns_df['BETA'].hvplot(title= '10 Day Rolling Beta') + price_hx['JPM']['close'].hvplot()
 
 beta_fig = px.line(returns_df, x=returns_df.index, y=returns_df['BETA'], labels={'index' : 'Date'})
+beta_fig.update_layout(title='10 day Rolling Beta')
 
 #Create function to format figures with earnings bands
 def format_fig(figure, remove_weekends=True):
@@ -91,11 +92,16 @@ hx_fig = go.Figure(data=[go.Candlestick(x=price_hx.index,
                         high=price_hx['JPM']['high'],
                         low=price_hx['JPM']['low'],
                         close=price_hx['JPM']['close'],)])
+hx_fig.update_layout(title='JPM candlestick',
+                    yaxis_title='Price')
 format_fig(hx_fig)
 
 #create price hx fig
 price_fig = px.line(cum_returns, x=cum_returns.index, y=[cum_returns['JPM'], cum_returns['SPY']], labels={'index' : 'Date'})
+price_fig.update_layout(title='JPM vs SPY price history',
+                        yaxis_title='Cumulative Return')
 format_fig(price_fig, remove_weekends=False)
+price_fig.update_xaxes(rangeslider_visible=False)
 
 #Create earnings fig
 colors = ['green',] *8
@@ -104,7 +110,7 @@ colors[3] = 'red'
 earnings_fig = go.Figure(data=[
     go.Bar(y=jpm_earnings['Consensus Estimate'],x=jpm_earnings.index, name='Consensus Estimate', marker_color='lightslategray'),
     go.Bar(y=jpm_earnings['Actual EPS'], x=jpm_earnings.index, name='Acutal EPS', marker_color=colors)])
-earnings_fig.update_layout(barmode='group', xaxis_tickangle=-45, yaxis_title='EPS',xaxis_tickmode='array', xaxis_tickvals=jpm_earnings.index)
+earnings_fig.update_layout(barmode='group', xaxis_tickangle=-45, yaxis_title='EPS',xaxis_tickmode='array', xaxis_tickvals=jpm_earnings.index, title="Past Earnings")
 
 #slice out close prices
 close=price_hx.xs('close', level=1, axis=1)
@@ -125,7 +131,7 @@ sliced_df.dropna(inplace=True)
 sliced_df.drop(columns='index', inplace=True)
 sliced_ret = sliced_df.pct_change()
 sliced_cum = ((1+sliced_ret).cumprod()-1)* 100
-sliced_cum.dropna(inplace=True)
+sliced_cum.fillna(0, inplace=True)
 sliced_cum.reset_index(drop=True, inplace=True)
 
 #Create alternate sliced df for fig1 
@@ -175,7 +181,7 @@ fig2.add_trace(go.Scatter(x=sliced_cum.index, y=sliced_cum['2020-07-14'], mode='
 fig2.add_trace(go.Scatter(x=sliced_cum.index, y=sliced_cum['2020-10-13'], mode='lines', name='2020-10-13', line=dict(color='green', width=2)))
 fig2.add_trace(go.Scatter(x=sliced_cum.index, y=sliced_cum['2021-01-15'], mode='lines', name='2021-01-15', line=dict(color='green', width=2)))
 fig2.add_trace(go.Scatter(x=sliced_cum.index, y=sliced_cum['2021-04-14'], mode='lines', name='2021-04-14', line=dict(color='green', width=2)))
-fig2.update_layout(title='Cumulative Returns Following Earnings Report',
+fig2.update_layout(title='Cumulative Returns 5 Days Prior to Earnings',
                      xaxis_title='Number of Trading Days',
                      yaxis_title='Cumulative Return')
 fig2.add_hline(y='0')
@@ -186,14 +192,14 @@ fig2.add_vrect(
 )
 
 
-#Dash test area
+#Dash 
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 app.layout = html.Div(children=[
-    html.H1(children='Earnings Research'),
+    html.H1(children='Class Presentation'),
 
     dcc.Graph(
         id='Candlestick',
