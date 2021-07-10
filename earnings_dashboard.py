@@ -1,5 +1,4 @@
 #import libraries
-import yfinance as yf
 import hvplot.pandas
 from pathlib import Path
 import pandas as pd
